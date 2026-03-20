@@ -19,3 +19,37 @@ main {
   color: var(--text);
   font-size: 0.9rem;
 }
+
+/* Mode Toggle */
+.mode-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+
+.mode-toggle button {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.mode-toggle button.active {
+  background: var(--accent);
+  color: white;
+}
+
+.mode-toggle button:hover:not(.active) {
+  background: var(--bg-secondary);
+}
