@@ -1,8 +1,11 @@
 import type { PortfolioConfig } from '../types/portfolio'
+import JSZip from 'jszip'
 
 export function generatePortfolioFiles(config: PortfolioConfig) {
-  // Generate Hero.tsx content
-  const heroContent = `import './Hero.css'
+  const files: Record<string, string> = {}
+  
+  // Generate Hero.tsx
+  files['src/components/Hero.tsx'] = `import './Hero.css'
 
 function Hero() {
   return (
@@ -13,9 +16,7 @@ function Hero() {
             <p className="hero-greeting">Hello, I'm</p>
             <h1 className="hero-name">${config.name}</h1>
             <p className="hero-title">${config.title}</p>
-            <p className="hero-description">
-              ${config.about.description}
-            </p>
+            <p className="hero-description">${config.about.description}</p>
             <div className="hero-buttons">
               <a href="#projects" className="btn btn-primary">View My Work</a>
               <a href="#contact" className="btn btn-secondary">Get In Touch</a>
@@ -52,8 +53,8 @@ function Hero() {
 export default Hero
 `
 
-  // Generate About.tsx content
-  const aboutContent = `import './About.css'
+  // Generate About.tsx
+  files['src/components/About.tsx'] = `import './About.css'
 
 function About() {
   return (
@@ -63,19 +64,12 @@ function About() {
           <span className="section-tag">About Me</span>
           <h2>Get to know me</h2>
         </div>
-        
         <div className="about-content">
           <div className="about-text">
             <p>${config.about.description}</p>
           </div>
-          
           <div className="about-stats">
-            ${config.about.stats.map(stat => `
-            <div className="stat-item">
-              <span className="stat-number">${stat.number}</span>
-              <span className="stat-label">${stat.label}</span>
-            </div>
-            `).join('')}
+            ${config.about.stats.map(stat => `<div className="stat-item"><span className="stat-number">${stat.number}</span><span className="stat-label">${stat.label}</span></div>`).join('')}
           </div>
         </div>
       </div>
@@ -86,8 +80,8 @@ function About() {
 export default About
 `
 
-  // Generate Contact.tsx content
-  const contactContent = `import './Contact.css'
+  // Generate Contact.tsx
+  files['src/components/Contact.tsx'] = `import './Contact.css'
 
 function Contact() {
   return (
@@ -97,7 +91,6 @@ function Contact() {
           <span className="section-tag">Get In Touch</span>
           <h2>Let's work together</h2>
         </div>
-        
         <div className="contact-content">
           <div className="contact-info">
             <h3>Ready to start a project?</h3>
@@ -126,18 +119,17 @@ function Contact() {
 export default Contact
 `
 
-  // Generate Projects.tsx content
-  const projectsContent = `import './Projects.css'
+  // Generate Projects.tsx
+  const projectsArray = config.projects.map(p => `  {
+    title: '${p.title.replace(/'/g, "\\'")}',
+    description: '${p.description.replace(/'/g, "\\'")}',
+    tags: [${p.tags.map(t => `'${t}'`).join(', ')}],${p.github ? `\n    github: '${p.github}',` : ''}${p.demo ? `\n    demo: '${p.demo}',` : ''}${p.isPaper ? '\n    isPaper: true,' : ''}
+  }`).join(',\n')
+
+  files['src/components/Projects.tsx'] = `import './Projects.css'
 
 const projects = [
-${config.projects.map(p => `  {
-    title: '${p.title}',
-    description: '${p.description}',
-    tags: [${p.tags.map(t => `'${t}'`).join(', ')}],
-    ${p.github ? `github: '${p.github}',` : ''}
-    ${p.demo ? `demo: '${p.demo}',` : ''}
-    ${p.isPaper ? 'isPaper: true,' : ''}
-  }`).join(',\n')}
+${projectsArray}
 ]
 
 function Projects() {
@@ -148,7 +140,6 @@ function Projects() {
           <span className="section-tag">My Projects</span>
           <h2>Featured Work</h2>
         </div>
-        
         <div className="projects-grid">
           {projects.map((project, index) => (
             <article key={index} className="project-card">
@@ -194,14 +185,16 @@ function Projects() {
 export default Projects
 `
 
-  // Generate Skills.tsx content
-  const skillsContent = `import './Skills.css'
-
-const skillCategories = [
-${config.skills.map(s => `  {
+  // Generate Skills.tsx
+  const skillsArray = config.skills.map(s => `  {
     title: '${s.title}',
     skills: [${s.skills.map(skill => `'${skill}'`).join(', ')}]
-  }`).join(',\n')}
+  }`).join(',\n')
+
+  files['src/components/Skills.tsx'] = `import './Skills.css'
+
+const skillCategories = [
+${skillsArray}
 ]
 
 function Skills() {
@@ -212,7 +205,6 @@ function Skills() {
           <span className="section-tag">My Skills</span>
           <h2>Technologies I work with</h2>
         </div>
-        
         <div className="skills-grid">
           {skillCategories.map((category) => (
             <div key={category.title} className="skill-card">
@@ -236,25 +228,201 @@ function Skills() {
 export default Skills
 `
 
-  return {
-    'Hero.tsx': heroContent,
-    'About.tsx': aboutContent,
-    'Contact.tsx': contactContent,
-    'Projects.tsx': projectsContent,
-    'Skills.tsx': skillsContent
-  }
+  // Generate App.tsx
+  files['src/App.tsx'] = `import './App.css'
+import Hero from './components/Hero'
+import About from './components/About'
+import Skills from './components/Skills'
+import Projects from './components/Projects'
+import Contact from './components/Contact'
+import Navigation from './components/Navigation'
+
+function App() {
+  return (
+    <div className="portfolio">
+      <Navigation />
+      <main>
+        <Hero />
+        <About />
+        <Skills />
+        <Projects />
+        <Contact />
+      </main>
+      <footer className="footer">
+        <div className="container">
+          <p>&copy; {new Date().getFullYear()} ${config.name}. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+  )
 }
 
-export function downloadAsZip(files: Record<string, string>, filename: string) {
-  // Simple JSON download for MVP - full ZIP requires JSZip library
-  const dataStr = JSON.stringify(files, null, 2)
-  const dataBlob = new Blob([dataStr], { type: 'application/json' })
-  const url = URL.createObjectURL(dataBlob)
+export default App
+`
+
+  // Generate package.json
+  files['package.json'] = JSON.stringify({
+    name: 'portfolio',
+    private: true,
+    version: '0.0.0',
+    type: 'module',
+    homepage: `https://github.com/${config.social.github.split('/').pop()}/portfolio`,
+    scripts: {
+      dev: 'vite',
+      build: 'tsc -b && vite build',
+      lint: 'eslint .',
+      preview: 'vite preview',
+      predeploy: 'npm run build',
+      deploy: 'gh-pages -d dist'
+    },
+    dependencies: {
+      react: '^19.2.4',
+      'react-dom': '^19.2.4'
+    },
+    devDependencies: {
+      '@eslint/js': '^9.39.4',
+      '@types/node': '^24.12.0',
+      '@types/react': '^19.2.14',
+      '@types/react-dom': '^19.2.3',
+      '@vitejs/plugin-react': '^6.0.1',
+      eslint: '^9.39.4',
+      'eslint-plugin-react-hooks': '^7.0.1',
+      'eslint-plugin-react-refresh': '^0.5.2',
+      'gh-pages': '^6.3.0',
+      globals: '^17.4.0',
+      typescript: '~5.9.3',
+      'typescript-eslint': '^8.57.0',
+      vite: '^8.0.1'
+    }
+  }, null, 2)
+
+  // Generate vite.config.ts
+  files['vite.config.ts'] = `import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  base: '/portfolio/',
+})
+`
+
+  // Generate index.html
+  files['index.html'] = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${config.name} - ${config.title}</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+`
+
+  // Generate main.tsx
+  files['src/main.tsx'] = `import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+`
+
+  // Generate tsconfig files (simplified)
+  files['tsconfig.json'] = JSON.stringify({
+    files: [],
+    references: [{ path: './tsconfig.app.json' }, { path: './tsconfig.node.json' }]
+  }, null, 2)
+
+  return files
+}
+
+export async function downloadAsZip(config: PortfolioConfig, filename: string) {
+  const files = generatePortfolioFiles(config)
+  const zip = new JSZip()
+  
+  // Add all files to ZIP
+  Object.entries(files).forEach(([path, content]) => {
+    zip.file(path, content)
+  })
+  
+  // Generate and download
+  const blob = await zip.generateAsync({ type: 'blob' })
+  const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `${filename}.json`
+  link.download = `${filename}.zip`
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
   URL.revokeObjectURL(url)
+}
+
+// GitHub API integration for one-click deploy
+export async function deployToGitHub(config: PortfolioConfig, token: string, repoName: string) {
+  const files = generatePortfolioFiles(config)
+  const username = config.social.github.split('/').pop() || 'user'
+  
+  // Step 1: Create repository
+  const createRepoResponse = await fetch('https://api.github.com/user/repos', {
+    method: 'POST',
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name: repoName,
+      description: `${config.name}'s Portfolio`,
+      private: false,
+      auto_init: true
+    })
+  })
+  
+  if (!createRepoResponse.ok) {
+    throw new Error('Failed to create repository')
+  }
+  
+  const repo = await createRepoResponse.json()
+  
+  // Step 2: Create files in the repository
+  for (const [path, content] of Object.entries(files)) {
+    await fetch(`https://api.github.com/repos/${username}/${repoName}/contents/${path}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `Add ${path}`,
+        content: btoa(unescape(encodeURIComponent(content)))
+      })
+    })
+  }
+  
+  // Step 3: Enable GitHub Pages
+  await fetch(`https://api.github.com/repos/${username}/${repoName}/pages`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      source: { branch: 'main', path: '/' }
+    })
+  })
+  
+  return {
+    repoUrl: repo.html_url,
+    pagesUrl: `https://${username}.github.io/${repoName}`
+  }
 }

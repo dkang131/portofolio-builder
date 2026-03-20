@@ -27,19 +27,74 @@
   font-size: 0.9rem;
 }
 
-.btn-export {
+.builder-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-download,
+.btn-deploy {
   padding: 0.75rem 1.5rem;
-  background: var(--accent);
-  color: white;
   border: none;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.btn-export:hover {
+.btn-download {
+  background: var(--bg-secondary);
+  color: var(--text-h);
+  border: 2px solid var(--border);
+}
+
+.btn-download:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-deploy {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-deploy:hover:not(:disabled) {
   background: var(--accent-hover);
+}
+
+.btn-download:disabled,
+.btn-deploy:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.deploy-status {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  background: var(--bg-secondary);
+  border-left: 4px solid var(--accent);
+  color: var(--text);
+}
+
+.deploy-status.success {
+  border-left-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.deployed-url {
+  margin-top: 0.5rem;
+}
+
+.deployed-url a {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.deployed-url p {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  color: var(--text);
 }
 
 .builder-main {
